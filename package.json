@@ -1,0 +1,23 @@
+{
+  "name": "bimapplication",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "rollup": "^3.26.0"
+  },
+  "dependencies": {
+    "three": "^0.135.0",
+    "three-mesh-bvh": "^0.5.11",
+    "web-ifc-three": "^0.0.119"
+  }
+}
