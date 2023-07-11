@@ -103315,6 +103315,176 @@ class CSS2DRenderer {
 
 }
 
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
+var Stats = function () {
+
+	var mode = 0;
+
+	var container = document.createElement( 'div' );
+	container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
+	container.addEventListener( 'click', function ( event ) {
+
+		event.preventDefault();
+		showPanel( ++ mode % container.children.length );
+
+	}, false );
+
+	//
+
+	function addPanel( panel ) {
+
+		container.appendChild( panel.dom );
+		return panel;
+
+	}
+
+	function showPanel( id ) {
+
+		for ( var i = 0; i < container.children.length; i ++ ) {
+
+			container.children[ i ].style.display = i === id ? 'block' : 'none';
+
+		}
+
+		mode = id;
+
+	}
+
+	//
+
+	var beginTime = ( performance || Date ).now(), prevTime = beginTime, frames = 0;
+
+	var fpsPanel = addPanel( new Stats.Panel( 'FPS', '#0ff', '#002' ) );
+	var msPanel = addPanel( new Stats.Panel( 'MS', '#0f0', '#020' ) );
+
+	if ( self.performance && self.performance.memory ) {
+
+		var memPanel = addPanel( new Stats.Panel( 'MB', '#f08', '#201' ) );
+
+	}
+
+	showPanel( 0 );
+
+	return {
+
+		REVISION: 16,
+
+		dom: container,
+
+		addPanel: addPanel,
+		showPanel: showPanel,
+
+		begin: function () {
+
+			beginTime = ( performance || Date ).now();
+
+		},
+
+		end: function () {
+
+			frames ++;
+
+			var time = ( performance || Date ).now();
+
+			msPanel.update( time - beginTime, 200 );
+
+			if ( time > prevTime + 1000 ) {
+
+				fpsPanel.update( ( frames * 1000 ) / ( time - prevTime ), 100 );
+
+				prevTime = time;
+				frames = 0;
+
+				if ( memPanel ) {
+
+					var memory = performance.memory;
+					memPanel.update( memory.usedJSHeapSize / 1048576, memory.jsHeapSizeLimit / 1048576 );
+
+				}
+
+			}
+
+			return time;
+
+		},
+
+		update: function () {
+
+			beginTime = this.end();
+
+		},
+
+		// Backwards Compatibility
+
+		domElement: container,
+		setMode: showPanel
+
+	};
+
+};
+
+Stats.Panel = function ( name, fg, bg ) {
+
+	var min = Infinity, max = 0, round = Math.round;
+	var PR = round( window.devicePixelRatio || 1 );
+
+	var WIDTH = 80 * PR, HEIGHT = 48 * PR,
+			TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
+			GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
+			GRAPH_WIDTH = 74 * PR, GRAPH_HEIGHT = 30 * PR;
+
+	var canvas = document.createElement( 'canvas' );
+	canvas.width = WIDTH;
+	canvas.height = HEIGHT;
+	canvas.style.cssText = 'width:80px;height:48px';
+
+	var context = canvas.getContext( '2d' );
+	context.font = 'bold ' + ( 9 * PR ) + 'px Helvetica,Arial,sans-serif';
+	context.textBaseline = 'top';
+
+	context.fillStyle = bg;
+	context.fillRect( 0, 0, WIDTH, HEIGHT );
+
+	context.fillStyle = fg;
+	context.fillText( name, TEXT_X, TEXT_Y );
+	context.fillRect( GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT );
+
+	context.fillStyle = bg;
+	context.globalAlpha = 0.9;
+	context.fillRect( GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT );
+
+	return {
+
+		dom: canvas,
+
+		update: function ( value, maxValue ) {
+
+			min = Math.min( min, value );
+			max = Math.max( max, value );
+
+			context.fillStyle = bg;
+			context.globalAlpha = 1;
+			context.fillRect( 0, 0, WIDTH, GRAPH_Y );
+			context.fillStyle = fg;
+			context.fillText( round( value ) + ' ' + name + ' (' + round( min ) + '-' + round( max ) + ')', TEXT_X, TEXT_Y );
+
+			context.drawImage( canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT );
+
+			context.fillRect( GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, GRAPH_HEIGHT );
+
+			context.fillStyle = bg;
+			context.globalAlpha = 0.9;
+			context.fillRect( GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, round( ( 1 - ( value / maxValue ) ) * GRAPH_HEIGHT ) );
+
+		}
+
+	};
+
+};
+
 // Split strategy constants
 const CENTER = 0;
 const AVERAGE = 1;
@@ -107471,43 +107641,10 @@ function disposeBoundsTree() {
 
 }
 
-//Creates the Three.js scene
+// 1 Scene
 const scene = new Scene();
 const canvas = document.getElementById('three-canvas');
-//Object to store the size of the viewport
-const size = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-};
 
-//Creates the camera (point of view of the user)
-const camera = new PerspectiveCamera(75, size.width / size.height);
-camera.position.z = 15;
-camera.position.y = 13;
-camera.position.x = 8;
-
-//Creates the lights of the scene
-const lightColor = 0xffffff;
-
-const ambientLight = new AmbientLight(lightColor, 0.5);
-scene.add(ambientLight);
-
-const directionalLight = new DirectionalLight(lightColor, 2);
-directionalLight.position.set(0, 10, 0);
-scene.add(directionalLight);
-
-//Sets up the renderer, fetching the canvas of the HTML
-const threeCanvas = document.getElementById("three-canvas");
-const renderer = new WebGLRenderer({ canvas: threeCanvas, alpha: true });
-renderer.setSize(size.width, size.height);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-const labelRenderer = new CSS2DRenderer();
-labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
-labelRenderer.domElement.style.position = 'absolute';
-labelRenderer.domElement.style.pointerEvents = 'none';
-labelRenderer.domElement.style.top = '0';
-document.body.appendChild(labelRenderer.domElement);
 
 //Creates grids and axes in the scene
 const grid = new GridHelper(50, 30);
@@ -107518,22 +107655,42 @@ axes.material.depthTest = false;
 axes.renderOrder = 1;
 scene.add(axes);
 
-//Creates the orbit controls (to navigate the scene)
-const controls = new OrbitControls(camera, threeCanvas);
-controls.enableDamping = true;
-controls.target.set(-2, 0, 0);
-
-//Animation loop
-const animate = () => {
-    controls.update();
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
-    requestAnimationFrame(animate);
+//Object to store the size of the viewport
+const size = {
+    width: window.innerWidth,
+    height: window.innerHeight,
 };
 
-animate();
+// 3 the camera (point of view of the user)
+const camera = new PerspectiveCamera(75, size.width / size.height);
+camera.position.z = 15;
+camera.position.y = 13;
+camera.position.x = 8;
 
-//Adjust the viewport to the size of the browser
+// 4 Sets up the renderer, fetching the canvas of the HTML
+const renderer = new WebGLRenderer({ canvas: canvas, alpha: true });
+renderer.setSize(size.width, size.height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.pointerEvents = 'none';
+labelRenderer.domElement.style.top = '0';
+document.body.appendChild(labelRenderer.domElement);
+
+// 5 the lights of the scene
+const lightColor = 0xffffff;
+
+const ambientLight = new AmbientLight(lightColor, 0.5);
+scene.add(ambientLight);
+
+const directionalLight = new DirectionalLight(lightColor, 2);
+directionalLight.position.set(0, 10, 0);
+scene.add(directionalLight);
+
+
+// 6 responsivity
 window.addEventListener("resize", () => {
     (size.width = window.innerWidth), (size.height = window.innerHeight);
     camera.aspect = size.width / size.height;
@@ -107542,80 +107699,40 @@ window.addEventListener("resize", () => {
     labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
 });
 
-//IFC loading
-const input = document.getElementById("file-input");
-const ifcLoader = new IFCLoader();
-const raycaster = new Raycaster();
-raycaster.firstHitOnly = true;
-const mouse = new Vector2$1();
+// 7 Creates the orbit controls (to navigate the scene)
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.target.set(-2, 0, 0);
+
+
+// 8 IFC loading
 
 // Sets up optimized picking
+const input = document.getElementById("file-input");
+const ifcLoader = new IFCLoader();
+
 ifcLoader.ifcManager.setupThreeMeshBVH(computeBoundsTree, disposeBoundsTree, acceleratedRaycast);
 
 const ifcModels = [];
-
 
 input.addEventListener(
     'change',
     async () => {
         const file = input.files[0];
         const url = URL.createObjectURL(file);
-        console.log(file);
         const model = await ifcLoader.loadAsync(url);
         scene.add(model);
         ifcModels.push(model);
     }
 );
 
-
-
-// picking
-
-window.addEventListener('dblclick', (event) => {
-    mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
-    mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-    const intersection = raycaster.intersectObjects(ifcModels);
-
-    if (!intersection.length) return;
-
-    const collisionLocation = intersection[0].point;
-
-    const message = window.prompt('Describe the issue');
-
-    const container = document.createElement('div');
-    container.className = 'label-container';
-
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'X';
-    deleteButton.className = 'delete-button hidden';
-    container.appendChild(deleteButton);
-
-    const label = document.createElement('p');
-    label.textContent = message;
-    label.classList.add('label');
-    container.appendChild(label);
-
-    const labelObject = new CSS2DObject(container);
-    labelObject.position.copy(collisionLocation);
-    scene.add(labelObject);
-
-    deleteButton.onclick = () => {
-        labelObject.removeFromParent();
-        labelObject.element = null;
-        container.remove();
-    };
-
-    container.onmouseenter = () => deleteButton.classList.remove('hidden');
-    container.onmouseleave = () => deleteButton.classList.add('hidden');
-});
-
+const raycaster = new Raycaster();
+raycaster.firstHitOnly = true;
+const mouse = new Vector2$1();
 
 function cast(event) {
-
     // Computes the position of the mouse on the screen
-    const bounds = threeCanvas.getBoundingClientRect();
+    const bounds = canvas.getBoundingClientRect();
 
     const x1 = event.clientX - bounds.left;
     const x2 = bounds.right - bounds.left;
@@ -107662,5 +107779,72 @@ function pick(event) {
         lastModel = undefined;
     }
 }
+canvas.onclick = (event) => pick(event);
 
-threeCanvas.onclick = (event) => pick(event);
+
+// 9 Labeling
+window.addEventListener('dblclick', (event) => {
+    mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+    mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersection = raycaster.intersectObjects(ifcModels);
+
+    if (!intersection.length) return;
+
+    const collisionLocation = intersection[0].point;
+
+    const message = window.prompt('Describe the issue');
+
+    const container = document.createElement('div');
+    container.className = 'label-container';
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'X';
+    deleteButton.className = 'delete-button hidden';
+    container.appendChild(deleteButton);
+
+    const label = document.createElement('p');
+    label.textContent = message;
+    label.classList.add('label');
+    container.appendChild(label);
+
+    const labelObject = new CSS2DObject(container);
+    labelObject.position.copy(collisionLocation);
+    scene.add(labelObject);
+
+    deleteButton.onclick = () => {
+        labelObject.removeFromParent();
+        labelObject.element = null;
+        container.remove();
+    };
+
+    container.onmouseenter = () => deleteButton.classList.remove('hidden');
+    container.onmouseleave = () => deleteButton.classList.add('hidden');
+});
+
+// 10 Animation loop
+// Add stats
+const stats = new Stats();
+stats.showPanel(2);
+document.body.appendChild(stats.dom);
+
+let fpsLocation = 10;
+stats.dom.style.left = fpsLocation + "px";
+stats.dom.style.right = null;
+stats.dom.style.top = null;
+stats.dom.style.bottom = "10%";
+
+const animate = () => {
+    stats.begin();
+
+    controls.update();
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
+
+    stats.end();
+
+    requestAnimationFrame(animate);
+};
+
+animate();

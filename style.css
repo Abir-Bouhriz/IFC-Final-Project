@@ -10,6 +10,54 @@ body {
     overflow: hidden;
 }
 
+header {
+    color: rgb(49, 48, 48);
+    margin-top: 1rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid gray;
+}
+
+
+h3 {
+    font-weight: 400;
+    font-size: 0.8rem;
+}
+
+.spinning {
+    animation: logo-spin 8s infinite 0s cubic-bezier(0.38, 0.01, 0, 0.99);
+}
+
+@keyframes logo-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(90deg);
+    }
+
+    50% {
+        transform: rotate(180deg);
+    }
+
+    75% {
+        transform: rotate(270deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+.logo {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 1rem;
+    transition: all 0.3s ease 0s;
+}
+
 #three-canvas {
     position: absolute;
     width: 100%;
@@ -19,6 +67,7 @@ body {
 
 #file-input {
     position: absolute;
+    margin: 1rem;
 }
 
 .hidden {
@@ -26,7 +75,8 @@ body {
 }
 
 .label {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
     padding: 8px;
     backdrop-filter: blur(8px);
     border-radius: 1rem;
@@ -40,6 +90,8 @@ body {
 }
 
 .delete-button {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
     padding: 6px;
     border-radius: 1rem;
     border: none;
