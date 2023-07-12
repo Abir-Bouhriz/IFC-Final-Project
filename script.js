@@ -16,6 +16,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { IFCLoader } from 'web-ifc-three';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Stats from 'stats.js/src/Stats';
+import { IFCBUILDING } from "web-ifc";
 import {
     acceleratedRaycast,
     computeBoundsTree,
@@ -139,7 +140,7 @@ const highlightMaterial = new MeshBasicMaterial({
 
 let lastModel;
 
-function pick(event) {
+async function pick(event) {
     const found = cast(event)[0];
     if (found) {
         const index = found.faceIndex;
@@ -147,6 +148,28 @@ function pick(event) {
         const geometry = found.object.geometry;
         const id = ifcLoader.ifcManager.getExpressId(geometry, index);
         console.log(id);
+
+        /*const buildings = await ifcLoader.ifcManager.getAllItemsOfType(found.object.modelID, IFCBUILDING, true);
+        const building = buildings[0];
+        console.log(building);*/
+
+        // logging properties
+        const props = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id);
+        console.log(props);
+        const pSets = await ifcLoader.ifcManager.getPropertySets(found.object.modelID, id);
+        console.log(pSets);
+
+        for (const pSet of pSets) {
+            const realValues = [];
+            for (const prop of pSet.HasProperties) {
+                const id = prop.value;
+                const value = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id);
+                realValues.push(value);
+            }
+            pSet.HasProperties = realValues;
+        }
+        console.log(pSets);
+
 
         ifcLoader.ifcManager.createSubset({
             modelID: found.object.modelID,
