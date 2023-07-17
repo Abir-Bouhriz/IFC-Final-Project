@@ -16,7 +16,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { IFCLoader } from 'web-ifc-three';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Stats from 'stats.js/src/Stats';
-import { IFCBUILDING } from "web-ifc";
 import {
     acceleratedRaycast,
     computeBoundsTree,
@@ -105,8 +104,90 @@ input.addEventListener(
         const model = await ifcLoader.loadAsync(url);
         scene.add(model);
         ifcModels.push(model);
+        const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID);
+        createTreeMenu(ifcProject);
     }
 );
+
+// Tree view
+
+const toggler = document.getElementsByClassName("caret");
+for (let i = 0; i < toggler.length; i++) {
+    toggler[i].onclick = () => {
+        toggler[i].parentElement.querySelector(".nested").classList.toggle("active");
+        toggler[i].classList.toggle("caret-down");
+    }
+}
+
+// Spatial tree menu
+
+function createTreeMenu(ifcProject) {
+    const root = document.getElementById("tree-root");
+    removeAllChildren(root);
+    const ifcProjectNode = createNestedChild(root, ifcProject);
+    ifcProject.children.forEach(child => {
+        constructTreeMenuNode(ifcProjectNode, child);
+    })
+}
+
+function nodeToString(node) {
+    return `${node.type} - ${node.expressID}`
+}
+
+function constructTreeMenuNode(parent, node) {
+    const children = node.children;
+    if (children.length === 0) {
+        createSimpleChild(parent, node);
+        return;
+    }
+    const nodeElement = createNestedChild(parent, node);
+    children.forEach(child => {
+        constructTreeMenuNode(nodeElement, child);
+    })
+}
+
+function createNestedChild(parent, node) {
+    const content = nodeToString(node);
+    const root = document.createElement('li');
+    createTitle(root, content);
+    const childrenContainer = document.createElement('ul');
+    childrenContainer.classList.add("nested");
+    root.appendChild(childrenContainer);
+    parent.appendChild(root);
+    return childrenContainer;
+}
+
+function createTitle(parent, content) {
+    const title = document.createElement("span");
+    title.classList.add("caret");
+    title.onclick = () => {
+        title.parentElement.querySelector(".nested").classList.toggle("active");
+        title.classList.toggle("caret-down");
+    }
+    title.textContent = content;
+    parent.appendChild(title);
+}
+
+function createSimpleChild(parent, node) {
+    const content = nodeToString(node);
+    const childNode = document.createElement('li');
+    childNode.classList.add('leaf-node');
+    childNode.textContent = content;
+    parent.appendChild(childNode);
+
+    //childNode.onmouseenter = () => {
+    //  ifcLoader.ifcManager.selector.prepickIfcItemsByID(0, [node.expressID]);
+    //}
+    childNode.onclick = async () => {
+        ifcLoader.ifcManager.selector.pickIfcItemsByID(0, [node.expressID]);
+    }
+}
+
+function removeAllChildren(element) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
 
 const raycaster = new Raycaster();
 raycaster.firstHitOnly = true;
@@ -182,6 +263,7 @@ async function pick(event) {
         ifcLoader.ifcManager.removeSubset(lastModel.modelID, highlightMaterial);
         lastModel = undefined;
     }
+
 }
 canvas.onclick = (event) => pick(event);
 

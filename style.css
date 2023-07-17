@@ -12,13 +12,17 @@ body {
 
 header {
     color: rgb(49, 48, 48);
-    margin-top: 1rem;
-    padding: 1rem;
+    padding: 0.5rem;
     display: flex;
     align-items: center;
     border-bottom: 1px solid gray;
+    justify-content: space-between;
 }
 
+header div {
+    display: flex;
+    align-items: center;
+}
 
 h3 {
     font-weight: 400;
@@ -66,8 +70,8 @@ h3 {
 }
 
 #file-input {
-    position: absolute;
     margin: 1rem;
+    float: right;
 }
 
 .hidden {
@@ -101,4 +105,61 @@ h3 {
 
 .delete-button {
     cursor: pointer;
+}
+
+/*Tree view: https://www.w3schools.com/howto/howto_js_treeview.asp*/
+
+.ifc-tree-menu {
+    position: absolute;
+    overflow-y: scroll;
+    background-color: white;
+    height: 100vh;
+}
+
+li ul {
+    user-select: none;
+    cursor: pointer;
+}
+
+/* Remove default bullets */
+ul,
+#myUL {
+    list-style-type: none;
+}
+
+/* Remove margins and padding from the parent ul */
+#myUL {
+    margin: 0.5rem;
+    padding: 0;
+}
+
+/* Style the caret/arrow */
+.caret {
+    cursor: pointer;
+    user-select: none;
+    /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+    transform: rotate(90deg);
+}
+
+/* Hide the nested list */
+.nested {
+    display: none;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+    display: block;
+    margin-left: 10px;
 }

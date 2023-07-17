@@ -12,11 +12,35 @@
 
 <body>
     <header>
-        <img class="spinning logo" src="assets/logo.svg" alt="IFC.js logo">
-        <h3>IFC.js Project</h3>
+        <div>
+            <img class="spinning logo" src="assets/logo.svg" alt="IFC.js logo">
+            <h3>IFC.js Project</h3>
+        </div>
+        <input type="file" id="file-input">
     </header>
+
     <canvas id="three-canvas"></canvas>
-    <input type="file" id="file-input">
+    <div class="ifc-tree-menu">
+        <ul id="myUL">
+            <li id="tree-root">
+                <span class="caret">Model</span>
+                <ul class="nested">
+                    <li></li>
+                    <li>
+                        <span class="caret"></span>
+                        <ul class="nested">
+                            <li></li>
+                            <li><span class="caret"></span>
+                                <ul class="nested">
+                                    <li></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
 
     <script type="module" src="bundle.js"></script>
 </body>
