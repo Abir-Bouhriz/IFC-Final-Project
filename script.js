@@ -373,7 +373,26 @@ function setupCheckBox (category) {
   })
 }
 
-// 11 Animation loop
+// 11 progress pourcentage
+function setupProgressNotification () {
+  const text = document.getElementById('progress-text')
+  ifcLoader.ifcManager.setOnProgress((event) => {
+    const percent = event.loaded / event.total * 100
+    const result = Math.trunc(percent)
+    text.innerText = result.toString()
+  })
+}
+
+setupProgressNotification()
+
+async function setUpMultiThreading () {
+  // These paths depend on how you structure your project
+  await ifcLoader.ifcManager.useWebWorkers(true, './IFCWorker.js')
+}
+
+setUpMultiThreading()
+
+// 12 Animation loop
 // Add stats
 const stats = new Stats()
 stats.showPanel(2)

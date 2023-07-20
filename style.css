@@ -165,7 +165,14 @@ ul,
 }
 
 
+#text-container {
+    margin: 1rem;
+    display: flex;
+}
 
+#text-container *:first-child {
+    margin-right: 5px;
+}
 
 .checkboxes {
     position: relative;
