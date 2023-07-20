@@ -163,3 +163,14 @@ ul,
     display: block;
     margin-left: 10px;
 }
+
+
+
+
+.checkboxes {
+    position: relative;
+    z-index: 99;
+    float: right;
+    top: 2px;
+    right: 1rem;
+}
