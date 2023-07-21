@@ -8,9 +8,19 @@ import {
   WebGLRenderer,
   Raycaster,
   Vector2,
-  MeshBasicMaterial
+  MeshBasicMaterial,
+  MOUSE,
+  Vector3,
+  Vector4,
+  Quaternion,
+  Matrix4,
+  Spherical,
+  Box3,
+  Sphere,
+  MathUtils,
+  Clock
 } from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import CameraControls from 'camera-controls'
 import { IFCLoader } from 'web-ifc-three'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import Stats from 'stats.js/src/Stats'
@@ -26,7 +36,8 @@ import {
   IFCWINDOW,
   IFCFURNISHINGELEMENT,
   IFCMEMBER,
-  IFCPLATE
+  IFCPLATE,
+  IFCBUILDINGSTOREY
 } from 'web-ifc'
 
 // 1 Scene
@@ -85,9 +96,27 @@ window.addEventListener('resize', () => {
 })
 
 // 7 Creates the orbit controls (to navigate the scene)
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
-controls.target.set(-2, 0, 0)
+const subsetOfTHREE = {
+  MOUSE,
+  Vector2,
+  Vector3,
+  Vector4,
+  Quaternion,
+  Matrix4,
+  Spherical,
+  Box3,
+  Sphere,
+  Raycaster,
+  MathUtils: {
+    DEG2RAD: MathUtils.DEG2RAD,
+    clamp: MathUtils.clamp
+  }
+}
+
+CameraControls.install({ THREE: subsetOfTHREE })
+const clock = new Clock()
+const cameraControls = new CameraControls(camera, canvas)
+cameraControls.dollyToCursor = true
 
 // 8 IFC loading
 
@@ -104,7 +133,7 @@ input.addEventListener(
   async () => {
     const file = input.files[0]
     const url = URL.createObjectURL(file)
-    const model = await ifcLoader.loadAsync(url)
+    model = await ifcLoader.loadAsync(url)
     // scene.add(model)
     ifcModels.push(model)
     await setupAllCategories()
@@ -242,7 +271,7 @@ async function pick (event) {
     const props = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
     console.log(props)
     const pSets = await ifcLoader.ifcManager.getPropertySets(found.object.modelID, id)
-    console.log(pSets)
+    // console.log(pSets)
 
     for (const pSet of pSets) {
       const realValues = []
@@ -253,7 +282,7 @@ async function pick (event) {
       }
       pSet.HasProperties = realValues
     }
-    console.log(pSets)
+    // console.log(pSets)
 
     ifcLoader.ifcManager.createSubset({
       modelID: found.object.modelID,
@@ -375,11 +404,11 @@ function setupCheckBox (category) {
 
 // 11 progress pourcentage
 function setupProgressNotification () {
-  const text = document.getElementById('progress-text')
+  const text = document.getElementById('text-container')
   ifcLoader.ifcManager.setOnProgress((event) => {
     const percent = event.loaded / event.total * 100
     const result = Math.trunc(percent)
-    text.innerText = result.toString()
+    result < 100 ? text.innerText = 'Progress: ' + result.toString() + '%' : text.innerText = ''
   })
 }
 
@@ -392,7 +421,32 @@ async function setUpMultiThreading () {
 
 setUpMultiThreading()
 
-// 12 Animation loop
+// 12 editing
+let model
+const button = document.getElementById('button')
+button.addEventListener('click',
+  async function edit () {
+    const storeysIDs = await ifcLoader.ifcManager.getAllItemsOfType(model.modelID, IFCBUILDINGSTOREY, false)
+    const storeyID = storeysIDs[0]
+    const storey = await ifcLoader.ifcManager.getItemProperties(model.modelID, storeyID)
+    console.log(storey)
+    const result = prompt('introduce the new name for the storey')
+    storey.LongName.value = result
+    ifcLoader.ifcManager.ifcAPI.WriteLine(model.modelID, storey)
+
+    const data = await ifcLoader.ifcManager.ifcAPI.ExportFileAsIFC(model.modelID)
+    const blob = new Blob([data])
+    const file = new File([blob], result + '.ifc')
+
+    const link = document.createElement('a')
+    link.download = result + '.ifc'
+    link.href = URL.createObjectURL(file)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  })
+
+// 13 Animation loop
 // Add stats
 const stats = new Stats()
 stats.showPanel(2)
@@ -407,7 +461,8 @@ stats.dom.style.bottom = '10%'
 const animate = () => {
   stats.begin()
 
-  controls.update()
+  const delta = clock.getDelta()
+  cameraControls.update(delta)
   renderer.render(scene, camera)
   labelRenderer.render(scene, camera)
 

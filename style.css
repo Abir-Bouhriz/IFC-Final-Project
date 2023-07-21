@@ -181,3 +181,19 @@ ul,
     top: 2px;
     right: 1rem;
 }
+
+#button {
+    background-color: #f1f1f1;
+    color: black;
+    font-size: 12px;
+    padding: 8px 15px;
+    border: 1px solid black;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  #button:hover {
+    background-color: black;
+    color: white;
+  }
