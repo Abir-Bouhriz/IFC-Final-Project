@@ -36,8 +36,7 @@ import {
   IFCWINDOW,
   IFCFURNISHINGELEMENT,
   IFCMEMBER,
-  IFCPLATE,
-  IFCBUILDINGSTOREY
+  IFCPLATE
 } from 'web-ifc'
 
 // 1 Scene
@@ -421,19 +420,12 @@ async function setUpMultiThreading () {
 
 setUpMultiThreading()
 
-// 12 editing
+// 12 edit & export
 let model
 const button = document.getElementById('button')
 button.addEventListener('click',
-  async function edit () {
-    const storeysIDs = await ifcLoader.ifcManager.getAllItemsOfType(model.modelID, IFCBUILDINGSTOREY, false)
-    const storeyID = storeysIDs[0]
-    const storey = await ifcLoader.ifcManager.getItemProperties(model.modelID, storeyID)
-    console.log(storey)
-    const result = prompt('introduce the new name for the storey')
-    storey.LongName.value = result
-    ifcLoader.ifcManager.ifcAPI.WriteLine(model.modelID, storey)
-
+  async function exportModel () {
+    const result = prompt('introduce the new name for the model')
     const data = await ifcLoader.ifcManager.ifcAPI.ExportFileAsIFC(model.modelID)
     const blob = new Blob([data])
     const file = new File([blob], result + '.ifc')
