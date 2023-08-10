@@ -197,3 +197,11 @@ ul,
     background-color: black;
     color: white;
   }
+  
+  #map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 400px;
+    height: 300px;
+  }

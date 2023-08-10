@@ -18,7 +18,9 @@ import {
   Box3,
   Sphere,
   MathUtils,
-  Clock
+  Clock,
+  Camera,
+  mapboxgl
 } from 'three'
 import CameraControls from 'camera-controls'
 import { IFCLoader } from 'web-ifc-three'
@@ -116,6 +118,7 @@ CameraControls.install({ THREE: subsetOfTHREE })
 const clock = new Clock()
 const cameraControls = new CameraControls(camera, canvas)
 cameraControls.dollyToCursor = true
+cameraControls.setLookAt(18, 20, 18, 0, 10, 0)
 
 // 8 IFC loading
 
@@ -126,20 +129,6 @@ const ifcLoader = new IFCLoader()
 ifcLoader.ifcManager.setupThreeMeshBVH(computeBoundsTree, disposeBoundsTree, acceleratedRaycast)
 
 const ifcModels = []
-
-input.addEventListener(
-  'change',
-  async () => {
-    const file = input.files[0]
-    const url = URL.createObjectURL(file)
-    model = await ifcLoader.loadAsync(url)
-    // scene.add(model)
-    ifcModels.push(model)
-    await setupAllCategories()
-    const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
-    createTreeMenu(ifcProject)
-  }
-)
 
 // Tree view
 
@@ -437,6 +426,180 @@ button.addEventListener('click',
     link.click()
     link.remove()
   })
+// mapbox
+// TO MAKE THE MAP APPEAR YOU MUST
+// ADD YOUR ACCESS TOKEN FROM
+// https://account.mapbox.com
+const coordinates = [-6.2203421442, 53.2961646563]
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWJpci1ib3Vocml6IiwiYSI6ImNsbDN0NzBqeTBkMnkzam4yaHh4cDFqa2YifQ.lKwZMQhgu7dvt5i_QkrECQ'
+const map = new mapboxgl.Map({
+  container: 'map',
+  // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+  style: 'mapbox://styles/mapbox/streets-v12',
+  zoom: 15,
+  center: coordinates,
+  pitch: 60,
+  bearing: -17.6,
+  antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
+})
+// Add zoom and rotation controls to the map.
+map.addControl(new mapboxgl.NavigationControl())
+
+// parameters to ensure the model is georeferenced correctly on the map
+const modelOrigin = [-6.2203421442, 53.2961646563]
+const modelAltitude = 0
+const modelRotate = [Math.PI / 2, 0, 0]
+
+const modelAsMercatorCoordinate = mapboxgl.MercatorCoordinate.fromLngLat(
+  modelOrigin,
+  modelAltitude
+)
+
+// transformation parameters to position, rotate and scale the 3D model onto the map
+const modelTransform = {
+  translateX: modelAsMercatorCoordinate.x,
+  translateY: modelAsMercatorCoordinate.y,
+  translateZ: modelAsMercatorCoordinate.z,
+  rotateX: modelRotate[0],
+  rotateY: modelRotate[1],
+  rotateZ: modelRotate[2],
+  /* Since the 3D model is in real world meters, a scale transform needs to be
+* applied since the CustomLayerInterface expects units in MercatorCoordinates.
+*/
+  scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
+}
+
+// configuration of the custom layer for a 3D model per the CustomLayerInterface
+const customLayer = {
+  id: '3d-model',
+  type: 'custom',
+  renderingMode: '3d',
+  onAdd: function (map, gl) {
+    this.camera = new Camera()
+    this.scene = new Scene()
+
+    // create two three.js lights to illuminate the model
+    const directionalLight = new DirectionalLight(0xffffff)
+    directionalLight.position.set(0, -70, 100).normalize()
+    this.scene.add(directionalLight)
+
+    const directionalLight2 = new DirectionalLight(0xffffff)
+    directionalLight2.position.set(0, 70, 100).normalize()
+    this.scene.add(directionalLight2)
+
+    input.addEventListener(
+      'change',
+      async () => {
+        const file = input.files[0]
+        const url = URL.createObjectURL(file)
+        model = await ifcLoader.loadAsync(url)
+        this.scene.add(model)
+        ifcModels.push(model)
+        await setupAllCategories()
+        const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
+        createTreeMenu(ifcProject)
+      }
+    )
+
+    this.map = map
+
+    // use the Mapbox GL JS map canvas for three.js
+    this.renderer = new WebGLRenderer({
+      canvas: map.getCanvas(),
+      context: gl,
+      antialias: true
+    })
+
+    this.renderer.autoClear = false
+  },
+  render: function (gl, matrix) {
+    const rotationX = new Matrix4().makeRotationAxis(
+      new Vector3(1, 0, 0),
+      modelTransform.rotateX
+    )
+    const rotationY = new Matrix4().makeRotationAxis(
+      new Vector3(0, 1, 0),
+      modelTransform.rotateY
+    )
+    const rotationZ = new Matrix4().makeRotationAxis(
+      new Vector3(0, 0, 1),
+      modelTransform.rotateZ
+    )
+
+    const m = new Matrix4().fromArray(matrix)
+    const l = new Matrix4()
+      .makeTranslation(
+        modelTransform.translateX,
+        modelTransform.translateY,
+        modelTransform.translateZ
+      )
+      .scale(
+        new Vector3(
+          modelTransform.scale,
+          -modelTransform.scale,
+          modelTransform.scale
+        )
+      )
+      .multiply(rotationX)
+      .multiply(rotationY)
+      .multiply(rotationZ)
+
+    this.camera.projectionMatrix = m.multiply(l)
+    this.renderer.resetState()
+    this.renderer.render(this.scene, this.camera)
+    this.map.triggerRepaint()
+  }
+}
+
+map.on('style.load', () => {
+  map.addLayer(customLayer, 'waterway-label')
+  // Insert the layer beneath any symbol layer.
+  const layers = map.getStyle().layers
+  const labelLayerId = layers.find(
+    (layer) => layer.type === 'symbol' && layer.layout['text-field']
+  ).id
+
+  // The 'building' layer in the Mapbox Streets
+  // vector tileset contains building height data
+  // from OpenStreetMap.
+  map.addLayer(
+    {
+      id: 'add-3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 15,
+      paint: {
+        'fill-extrusion-color': '#aaa',
+
+        // Use an 'interpolate' expression to
+        // add a smooth transition effect to
+        // the buildings as the user zooms in.
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          15,
+          0,
+          15.05,
+          ['get', 'height']
+        ],
+        'fill-extrusion-base': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          15,
+          0,
+          15.05,
+          ['get', 'min_height']
+        ],
+        'fill-extrusion-opacity': 0.6
+      }
+    },
+    labelLayerId
+  )
+})
 
 // 13 Animation loop
 // Add stats
