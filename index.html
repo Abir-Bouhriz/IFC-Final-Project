@@ -4,92 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-    <title>IFC Project</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
-<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
-<link href='https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.css' rel='stylesheet' />
-    
+    <title>IFC Project</title>
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
+
     <header>
         <div>
-            <img class="spinning logo" src="assets/logo.svg" alt="IFC.js logo">
-            <h3>IFC.js Project</h3>
+        <img class="spinning logo" src="./assets/logo.svg" alt="IFC.js logo">
+        <h3>IFC.js Crash Course</h3>
         </div>
-        <div>
-            <div id="text-container"></div>
-            <input type="file" id="file-input">
-            <div id="button-container"></div>
-            <button id="button">Export model</button>
-            
-        </div>
-        
-        
     </header>
-    <div>
-        <canvas id="three-canvas"></canvas>
-    <div class="ifc-tree-menu">
-        <ul id="myUL">
-            <li id="tree-root">
-                <span class="caret">Model</span>
-                <ul class="nested">
-                    <li></li>
-                    <li>
-                        <span class="caret"></span>
-                        <ul class="nested">
-                            <li></li>
-                            <li><span class="caret"></span>
-                                <ul class="nested">
-                                    <li></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-    <div class="checkboxes">
-        <div>
-            <input type="checkbox" checked="true" id="IFCWALLSTANDARDCASE">
-            Walls
-        </div>
-        <div>
-            <input type="checkbox" checked="true" id="IFCSLAB">
-            Slabs
-        </div>
-        <div>
-            <input type="checkbox" checked="true" id="IFCFURNISHINGELEMENT">
-            Furniture
-        </div>
-        <div>
-            <input type="checkbox" checked="true" id="IFCDOOR">
-            Doors
-        </div>
-        <div>
-            <input type="checkbox" checked="true" id="IFCWINDOW">
-            Windows
-        </div>
-        <div>
-            <input type="checkbox" checked="true" id="IFCPLATE">
-            Plates
-        </div>
-        <div>
-            <input type="checkbox" checked="true" id="IFCMEMBER">
-            Members
-        </div>
+    <h1>BIM Model List</h1>
+    <div id="test" class="bim-list"></div>
     
-    </div>
-        <div id="map"></div>
-    </div>
-    
-    
-    
-    <script type="module" src="bundle.js"></script>
+<script>
+    const models = [
+        {name: "Model 01", img:"./assets/1.PNG", link: "./model.html", asset:"./IFC/01.ifc"},
+        {name: "Model 02", img:"./assets/2.PNG", link: "./model.html", asset:"./IFC/02.ifc"},
+        {name: "Model 03", img:"./assets/3.PNG", link: "./model.html", asset:"./IFC/03.ifc"},
+        {name: "Model 04", img:"./assets/4.PNG", link: "./model.html", asset:"./IFC/04.ifc"}
+    ]
+
+    for (let i = 0; i < models.length; i++) {
+        let str= '<div class="card"><img src='+ models[i].img +' alt="img" height="100%" width="100%"><h2 >'+ models[i].name +'</h2><a class="button" href="'+ models[i].link +'">Details</a></div>'
+
+        document.getElementById('test').innerHTML += str;
+    }
+
+</script>
 </body>
 
 </html>

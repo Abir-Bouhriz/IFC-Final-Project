@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <title>IFC Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.css' rel='stylesheet' />
+    
+</head>
+
+<body>
+    <header>
+        <div>
+            <a class="button" href="/index.html">&laquo; Model List</a>
+        </div>
+        <div>
+            <div id="text-container"></div>
+            <input type="file" id="file-input">
+            <div id="button-container"></div>
+            <button id="button" class="button">Export model</button>
+            
+        </div>
+        
+        
+    </header>
+    <canvas id="three-canvas"></canvas>
+    <div class="ifc-tree-menu">
+        <ul id="myUL">
+            <li id="tree-root">
+                <span class="caret">Model</span>
+                <ul class="nested">
+                    <li></li>
+                    <li>
+                        <span class="caret"></span>
+                        <ul class="nested">
+                            <li></li>
+                            <li><span class="caret"></span>
+                                <ul class="nested">
+                                    <li></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <div class="checkboxes">
+        <div>
+            <input type="checkbox" checked="true" id="IFCWALLSTANDARDCASE">
+            Walls
+        </div>
+        <div>
+            <input type="checkbox" checked="true" id="IFCSLAB">
+            Slabs
+        </div>
+        <div>
+            <input type="checkbox" checked="true" id="IFCFURNISHINGELEMENT">
+            Furniture
+        </div>
+        <div>
+            <input type="checkbox" checked="true" id="IFCDOOR">
+            Doors
+        </div>
+        <div>
+            <input type="checkbox" checked="true" id="IFCWINDOW">
+            Windows
+        </div>
+        <div>
+            <input type="checkbox" checked="true" id="IFCPLATE">
+            Plates
+        </div>
+        <div>
+            <input type="checkbox" checked="true" id="IFCMEMBER">
+            Members
+        </div>
+    
+    </div>
+    <div id="map"></div>
+    
+    
+    
+    
+    <script type="module" src="bundle.js"></script>
+</body>
+
+</html>

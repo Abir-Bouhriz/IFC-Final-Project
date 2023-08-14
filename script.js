@@ -19,8 +19,7 @@ import {
   Sphere,
   MathUtils,
   Clock,
-  Camera,
-  mapboxgl
+  Camera
 } from 'three'
 import CameraControls from 'camera-controls'
 import { IFCLoader } from 'web-ifc-three'
@@ -125,7 +124,7 @@ cameraControls.setLookAt(18, 20, 18, 0, 10, 0)
 // Sets up optimized picking
 const input = document.getElementById('file-input')
 const ifcLoader = new IFCLoader()
-
+let model
 ifcLoader.ifcManager.setupThreeMeshBVH(computeBoundsTree, disposeBoundsTree, acceleratedRaycast)
 
 const ifcModels = []
@@ -410,7 +409,7 @@ async function setUpMultiThreading () {
 setUpMultiThreading()
 
 // 12 edit & export
-let model
+
 const button = document.getElementById('button')
 button.addEventListener('click',
   async function exportModel () {
@@ -430,12 +429,12 @@ button.addEventListener('click',
 // TO MAKE THE MAP APPEAR YOU MUST
 // ADD YOUR ACCESS TOKEN FROM
 // https://account.mapbox.com
-const coordinates = [-6.2203421442, 53.2961646563]
+const coordinates = [-6.220948301053222, 53.29617110564267]
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWJpci1ib3Vocml6IiwiYSI6ImNsbDN0NzBqeTBkMnkzam4yaHh4cDFqa2YifQ.lKwZMQhgu7dvt5i_QkrECQ'
 const map = new mapboxgl.Map({
   container: 'map',
   // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-  style: 'mapbox://styles/mapbox/streets-v12',
+  style: 'mapbox://styles/mapbox/satellite-streets-v12',
   zoom: 15,
   center: coordinates,
   pitch: 60,
@@ -446,7 +445,7 @@ const map = new mapboxgl.Map({
 map.addControl(new mapboxgl.NavigationControl())
 
 // parameters to ensure the model is georeferenced correctly on the map
-const modelOrigin = [-6.2203421442, 53.2961646563]
+const modelOrigin = coordinates
 const modelAltitude = 0
 const modelRotate = [Math.PI / 2, 0, 0]
 
@@ -477,6 +476,8 @@ const customLayer = {
   onAdd: function (map, gl) {
     this.camera = new Camera()
     this.scene = new Scene()
+
+    // loadIFC(this.scene)
 
     // create two three.js lights to illuminate the model
     const directionalLight = new DirectionalLight(0xffffff)
