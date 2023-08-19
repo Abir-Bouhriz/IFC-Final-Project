@@ -123,14 +123,18 @@ cameraControls.setLookAt(18, 20, 18, 0, 10, 0)
 
 // Sets up optimized picking
 const input = document.getElementById('file-input')
-const ifcLoader = new IFCLoader()
+let ifcLoader = new IFCLoader()
 let model
+const ifcModels = []
+// const model = await ifcLoader.loadAsync('./IFC/02.ifc')
+// ifcModels.push(model)
+// scene.add(model)
+// const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
+// createTreeMenu(ifcProject)
+
 ifcLoader.ifcManager.setupThreeMeshBVH(computeBoundsTree, disposeBoundsTree, acceleratedRaycast)
 
-const ifcModels = []
-
 // Tree view
-
 const toggler = document.getElementsByClassName('caret')
 for (let i = 0; i < toggler.length; i++) {
   toggler[i].onclick = () => {
@@ -248,28 +252,27 @@ async function pick (event) {
     lastModel = found.object
     const geometry = found.object.geometry
     const id = ifcLoader.ifcManager.getExpressId(geometry, index)
-    console.log(id)
+    console.log('id: ' + id)
 
     /* const buildings = await ifcLoader.ifcManager.getAllItemsOfType(found.object.modelID, IFCBUILDING, true);
         const building = buildings[0];
         console.log(building); */
 
     // logging properties
-    const props = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
-    console.log(props)
-    const pSets = await ifcLoader.ifcManager.getPropertySets(found.object.modelID, id)
-    // console.log(pSets)
+    // const props = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
+    // console.log('props: ' + props)
+    // const pSets = await ifcLoader.ifcManager.getPropertySets(found.object.modelID, id)
 
-    for (const pSet of pSets) {
-      const realValues = []
-      for (const prop of pSet.HasProperties) {
-        const id = prop.value
-        const value = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
-        realValues.push(value)
-      }
-      pSet.HasProperties = realValues
-    }
-    // console.log(pSets)
+    // for (const pSet of pSets) {
+    //   const realValues = []
+    //   for (const prop of pSet.HasProperties) {
+    //     const id = prop.value
+    //     const value = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
+    //     realValues.push(value)
+    //   }
+    //   pSet.HasProperties = realValues
+    // }
+    // console.log('pSets: ' + pSets)
 
     ifcLoader.ifcManager.createSubset({
       modelID: found.object.modelID,
@@ -429,13 +432,13 @@ button.addEventListener('click',
 // TO MAKE THE MAP APPEAR YOU MUST
 // ADD YOUR ACCESS TOKEN FROM
 // https://account.mapbox.com
-const coordinates = [-6.220948301053222, 53.29617110564267]
+const coordinates = [-0.5635273462895064, 35.700600503977995]
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWJpci1ib3Vocml6IiwiYSI6ImNsbDN0NzBqeTBkMnkzam4yaHh4cDFqa2YifQ.lKwZMQhgu7dvt5i_QkrECQ'
 const map = new mapboxgl.Map({
   container: 'map',
   // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
   style: 'mapbox://styles/mapbox/satellite-streets-v12',
-  zoom: 15,
+  zoom: 18,
   center: coordinates,
   pitch: 60,
   bearing: -17.6,
@@ -477,7 +480,7 @@ const customLayer = {
     this.camera = new Camera()
     this.scene = new Scene()
 
-    // loadIFC(this.scene)
+    loadModelInMap(this.scene)
 
     // create two three.js lights to illuminate the model
     const directionalLight = new DirectionalLight(0xffffff)
@@ -487,20 +490,6 @@ const customLayer = {
     const directionalLight2 = new DirectionalLight(0xffffff)
     directionalLight2.position.set(0, 70, 100).normalize()
     this.scene.add(directionalLight2)
-
-    input.addEventListener(
-      'change',
-      async () => {
-        const file = input.files[0]
-        const url = URL.createObjectURL(file)
-        model = await ifcLoader.loadAsync(url)
-        this.scene.add(model)
-        ifcModels.push(model)
-        await setupAllCategories()
-        const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
-        createTreeMenu(ifcProject)
-      }
-    )
 
     this.map = map
 
@@ -605,7 +594,7 @@ map.on('style.load', () => {
 // 13 Animation loop
 // Add stats
 const stats = new Stats()
-stats.showPanel(2)
+stats.showPanel(0)
 document.body.appendChild(stats.dom)
 
 const fpsLocation = 10
@@ -628,3 +617,43 @@ const animate = () => {
 }
 
 animate()
+
+async function loadModelInMap (scene) {
+  const ifcLoader = new IFCLoader()
+  const model = await ifcLoader.loadAsync('./IFC/01.ifc')
+  ifcModels.push(model)
+  scene.add(model)
+}
+
+input.addEventListener(
+  'change',
+  async () => {
+    const file = input.files[0]
+    const url = URL.createObjectURL(file)
+    model = await ifcLoader.loadAsync(url)
+    ifcModels.push(model)
+    scene.add(model)
+    await setupAllCategories()
+    const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
+    createTreeMenu(ifcProject)
+  }
+)
+
+async function releaseMemory () {
+  // This releases all IFCLoader memory
+  await ifcLoader.ifcManager.dispose()
+  ifcLoader = null
+  ifcLoader = new IFCLoader()
+
+  // If the wasm path was set before, we need to reset it
+  // await ifcLoader.ifcManager.setWasmPath('../../../')
+
+  // If IFC models are an array or object,
+  // you must release them there as well
+  // Otherwise, they won't be garbage collected
+  ifcModels.length = 0
+}
+
+// Sets up memory disposal
+const memory = document.getElementById('memory-button')
+memory.addEventListener('click', () => releaseMemory())
