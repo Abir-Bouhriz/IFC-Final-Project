@@ -19,21 +19,28 @@
         </div>
     </header>
     <h1>BIM Model List</h1>
-    <div id="test" class="bim-list"></div>
+    <div id="test" class="bim-list">
+    </div>
+<script type="module">
+    import {models} from "./const.js"
     
-<script>
-    const models = [
-        {name: "Model 01", img:"./assets/1.PNG", link: "./model.html", asset:"./IFC/01.ifc"},
-        {name: "Model 02", img:"./assets/2.PNG", link: "./model.html", asset:"./IFC/02.ifc"},
-        {name: "Model 03", img:"./assets/3.PNG", link: "./model.html", asset:"./IFC/03.ifc"},
-        {name: "Model 04", img:"./assets/4.PNG", link: "./model.html", asset:"./IFC/04.ifc"}
-    ]
+function load (index) {
 
-    for (let i = 0; i < models.length; i++) {
-        let str= '<div class="card"><img src='+ models[i].img +' alt="img" height="100%" width="100%"><h2 >'+ models[i].name +'</h2><a class="button" href="'+ models[i].link +'">Details</a></div>'
+window.location.href = models[index].link+ "?" + "model="+index
+}
 
-        document.getElementById('test').innerHTML += str;
-    }
+for (let i = 0; i < models.length; i++) {
+    let str = '<div class="card"><img src="' + models[i].img + '" alt="img" height="100%" width="100%"><h2>' + models[i].name + '</h2><a id="btn'+i+'" class="button">Details</a></div>';
+
+
+  document.getElementById('test').innerHTML += str
+}
+
+for (let i = 0; i < models.length; i++) {
+    document.getElementById('btn'+i).addEventListener('click', ()=>load(i))
+
+}
+
 
 </script>
 </body>

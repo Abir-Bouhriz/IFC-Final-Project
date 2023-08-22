@@ -39,11 +39,13 @@ import {
   IFCMEMBER,
   IFCPLATE
 } from 'web-ifc'
+import { models } from './const'
 
 // 1 Scene
 const scene = new Scene()
+let ifcLoader = new IFCLoader()
 const canvas = document.getElementById('three-canvas')
-
+let model
 // Creates grids and axes in the scene
 const grid = new GridHelper(50, 30)
 scene.add(grid)
@@ -122,15 +124,9 @@ cameraControls.setLookAt(18, 20, 18, 0, 10, 0)
 // 8 IFC loading
 
 // Sets up optimized picking
-const input = document.getElementById('file-input')
-let ifcLoader = new IFCLoader()
-let model
+// const input = document.getElementById('file-input')
+
 const ifcModels = []
-// const model = await ifcLoader.loadAsync('./IFC/02.ifc')
-// ifcModels.push(model)
-// scene.add(model)
-// const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
-// createTreeMenu(ifcProject)
 
 ifcLoader.ifcManager.setupThreeMeshBVH(computeBoundsTree, disposeBoundsTree, acceleratedRaycast)
 
@@ -432,7 +428,11 @@ button.addEventListener('click',
 // TO MAKE THE MAP APPEAR YOU MUST
 // ADD YOUR ACCESS TOKEN FROM
 // https://account.mapbox.com
-const coordinates = [-0.5635273462895064, 35.700600503977995]
+const urlString = window.location
+const url = new URL(urlString)
+const index = url.searchParams.get('model')
+
+const coordinates = models[index].coordinates
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWJpci1ib3Vocml6IiwiYSI6ImNsbDN0NzBqeTBkMnkzam4yaHh4cDFqa2YifQ.lKwZMQhgu7dvt5i_QkrECQ'
 const map = new mapboxgl.Map({
   container: 'map',
@@ -620,24 +620,36 @@ animate()
 
 async function loadModelInMap (scene) {
   const ifcLoader = new IFCLoader()
-  const model = await ifcLoader.loadAsync('./IFC/01.ifc')
+  const model = await ifcLoader.loadAsync(models[index].asset)
   ifcModels.push(model)
   scene.add(model)
 }
 
-input.addEventListener(
-  'change',
-  async () => {
-    const file = input.files[0]
-    const url = URL.createObjectURL(file)
-    model = await ifcLoader.loadAsync(url)
-    ifcModels.push(model)
-    scene.add(model)
-    await setupAllCategories()
-    const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
-    createTreeMenu(ifcProject)
-  }
-)
+// input.addEventListener(
+//   'change',
+//   async () => {
+//     const file = input.files[0]
+//     const url = URL.createObjectURL(file)
+//     console.log('url ', url)
+//     model = await ifcLoader.loadAsync(url)
+//     ifcModels.push(model)
+//     await setupAllCategories()
+//     const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
+//     createTreeMenu(ifcProject)
+//     // scene.add(model)
+//   }
+// )
+
+setTimeout(() => {
+  ifcLoader.load(models[index].asset, async (model) => {
+    if (model) {
+      ifcModels.push(model)
+      await setupAllCategories()
+      const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
+      createTreeMenu(ifcProject)
+    }
+  })
+}, 2000)
 
 async function releaseMemory () {
   // This releases all IFCLoader memory
