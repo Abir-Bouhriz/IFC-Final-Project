@@ -1,5 +1,5 @@
 # IFC-Final-Project
-This repository is a challenge from IFC.js crash course to create a project gallery and 3d viewer with various BIM tools. It's built using web-ifc-three & the Three.js library. 
+This repository is a challenge from IFC.js crash course which I applied the knowledge and skills I have gained throughout the course to create a web application using IFC.js and Three.js. The goal of this project is to build a simple interactive viewer for IFC files that allows users to visualize and explore 3D building models in a web browser.
 
 ## Tools & languages:
 
@@ -39,3 +39,4 @@ Feel free to fork this project and add whatever you like. If you have any sugges
 ## Documentation:
 * [Three.js](https://threejs.org/docs/)
 * [IFC.js](https://ifcjs.github.io/info/docs/introduction)
+* [Mapbox](https://www.mapbox.com/mapbox-gljs)
