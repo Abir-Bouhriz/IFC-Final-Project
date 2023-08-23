@@ -24,6 +24,21 @@ header div {
     align-items: center;
 }
 
+h1 {
+  text-align: center;
+  margin: 20px;
+}
+
+h2 {
+  font-size: 1rem;
+  padding: 5px;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
 h3 {
     font-weight: 400;
     font-size: 0.8rem;
@@ -67,11 +82,6 @@ h3 {
     width: 100%;
     height: 100%;
     outline: none;
-}
-
-#file-input {
-    margin: 1rem;
-    float: right;
 }
 
 .hidden {
@@ -121,26 +131,21 @@ li ul {
     cursor: pointer;
 }
 
-/* Remove default bullets */
 ul,
 #myUL {
     list-style-type: none;
 }
 
-/* Remove margins and padding from the parent ul */
 #myUL {
     margin: 0.5rem;
     padding: 0;
 }
 
-/* Style the caret/arrow */
 .caret {
     cursor: pointer;
     user-select: none;
-    /* Prevent text selection */
 }
 
-/* Create the caret/arrow with a unicode, and style it */
 .caret::before {
     content: "\25B6";
     color: black;
@@ -148,22 +153,18 @@ ul,
     margin-right: 6px;
 }
 
-/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
 .caret-down::before {
     transform: rotate(90deg);
 }
 
-/* Hide the nested list */
 .nested {
     display: none;
 }
 
-/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
 .active {
     display: block;
     margin-left: 10px;
 }
-
 
 #text-container {
     margin: 1rem;
@@ -182,135 +183,111 @@ ul,
     right: 1rem;
 }
 
-  
-  #map {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 300px;
-    height: 200px;
-    border-radius: 1rem;
-    border: 1px black solid;
-  }
+#map {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 300px;
+  height: 200px;
+  border-radius: 1rem;
+  border: 1px black solid;
+}
 
-  .bim-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .bottom-toolbar {
-    display: flex;
-    flex-direction: row;
-  }
-  
-  .bottom-toolbar button {
-    margin: 0.5rem;
-  }
-  
-  .card {
-    margin: 1rem;
-    min-width: 10rem;
-    max-width: 20rem;
-    height: 20rem;
-    background-color: rgb(255, 255, 255);
-    border: rgb(250, 250, 250) 0.2em solid;
-    border-radius: 0.4rem;
-    transition: border 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .card * {
-    margin: 0.5rem 0;
-  }
-  
-  .card .button {
-    padding: 1rem;
-  }
-  
-  .card:hover {
-    border: #006fff 0.1em solid;
-    transform: scale(1.05)
-  }
-  
-  .button {
-    --color: #000000;
-    background-color: transparent;
-    border-radius: .3em;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: .5s;
-    font-weight: 400;
-    font-size: 12px;
-    padding: 8px 15px;
-    border: 1px solid;
-    font-family: inherit;
-    color: var(--color);
-    z-index: 1;
-  }
-  
-  .button::before,
-  .button::after {
-    content: '';
-    display: block;
-    width: 50px;
-    height: 50px;
-    transform: translate(-50%, -50%);
-    position: absolute;
-    border-radius: 50%;
-    z-index: -1;
-    background-color: #006fff;
-    transition: 1s ease;
-  }
-  
-  .button::before {
-    top: -1em;
-    left: -1em;
-  }
-  
-  .button::after {
-    left: calc(100% + 1em);
-    top: calc(100% + 1em);
-  }
-  
-  .button:hover::before,
-  .button:hover::after {
-    height: 410px;
-    width: 410px;
-  }
-  
-  .button:hover {
-    color: rgb(255, 255, 255);
-  }
-  
-  .button:active {
-    filter: brightness(.8);
-  }
-  
-  .simple-card-container {
-    display: flex;
-    justify-content: center;
-    position: absolute;
-    width: 100%;
-    padding-top: 20px;
-  }
+.bim-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
-  h1 {
-    text-align: center;
-    margin: 20px;
-  }
-  
-  h2 {
-    font-size: 1rem;
-    padding: 5px;
-  }
-  a {
-    text-decoration: none;
-    color: black;
-  }
-  
+.card {
+  margin: 1rem;
+  min-width: 10rem;
+  max-width: 20rem;
+  height: 20rem;
+  background-color: rgb(255, 255, 255);
+  border: rgb(250, 250, 250) 0.2em solid;
+  border-radius: 0.4rem;
+  transition: border 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.card * {
+  margin: 0.5rem 0;
+}
+
+.card .button {
+  padding: 1rem;
+}
+
+.card:hover {
+  border: #006fff 0.1em solid;
+  transform: scale(1.05)
+}
+
+.button {
+  --color: #000000;
+  background-color: transparent;
+  border-radius: .3em;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: .5s;
+  font-weight: 400;
+  font-size: 12px;
+  padding: 8px 15px;
+  border: 1px solid;
+  font-family: inherit;
+  color: var(--color);
+  z-index: 1;
+}
+
+.button::before,
+.button::after {
+  content: '';
+  display: block;
+  width: 50px;
+  height: 50px;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  border-radius: 50%;
+  z-index: -1;
+  background-color: #006fff;
+  transition: 1s ease;
+}
+
+.button::before {
+  top: -1em;
+  left: -1em;
+}
+
+.button::after {
+  left: calc(100% + 1em);
+  top: calc(100% + 1em);
+}
+
+.button:hover::before,
+.button:hover::after {
+  height: 410px;
+  width: 410px;
+}
+
+.button:hover {
+  color: rgb(255, 255, 255);
+}
+
+.button:active {
+  filter: brightness(.8);
+}
+
+.simple-card-container {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  padding-top: 20px;
+}
+

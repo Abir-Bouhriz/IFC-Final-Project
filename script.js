@@ -44,8 +44,11 @@ import { models } from './const'
 // 1 Scene
 const scene = new Scene()
 let ifcLoader = new IFCLoader()
+
 const canvas = document.getElementById('three-canvas')
 let model
+const ifcModels = []
+
 // Creates grids and axes in the scene
 const grid = new GridHelper(50, 30)
 scene.add(grid)
@@ -121,16 +124,10 @@ const cameraControls = new CameraControls(camera, canvas)
 cameraControls.dollyToCursor = true
 cameraControls.setLookAt(18, 20, 18, 0, 10, 0)
 
-// 8 IFC loading
-
 // Sets up optimized picking
-// const input = document.getElementById('file-input')
-
-const ifcModels = []
-
 ifcLoader.ifcManager.setupThreeMeshBVH(computeBoundsTree, disposeBoundsTree, acceleratedRaycast)
 
-// Tree view
+// 8 Tree view
 const toggler = document.getElementsByClassName('caret')
 for (let i = 0; i < toggler.length; i++) {
   toggler[i].onclick = () => {
@@ -138,8 +135,6 @@ for (let i = 0; i < toggler.length; i++) {
     toggler[i].classList.toggle('caret-down')
   }
 }
-
-// Spatial tree menu
 
 function createTreeMenu (ifcProject) {
   const root = document.getElementById('tree-root')
@@ -194,13 +189,6 @@ function createSimpleChild (parent, node) {
   childNode.classList.add('leaf-node')
   childNode.textContent = content
   parent.appendChild(childNode)
-
-  childNode.onmouseenter = () => {
-    ifcLoader.ifcManager.selector.prepickIfcItemsByID(0, [node.expressID])
-  }
-  childNode.onclick = async () => {
-    ifcLoader.ifcManager.selector.pickIfcItemsByID(0, [node.expressID])
-  }
 }
 
 function removeAllChildren (element) {
@@ -209,12 +197,12 @@ function removeAllChildren (element) {
   }
 }
 
+// 9 Selection
 const raycaster = new Raycaster()
 raycaster.firstHitOnly = true
 const mouse = new Vector2()
 
 function cast (event) {
-  // Computes the position of the mouse on the screen
   const bounds = canvas.getBoundingClientRect()
 
   const x1 = event.clientX - bounds.left
@@ -225,10 +213,8 @@ function cast (event) {
   const y2 = bounds.bottom - bounds.top
   mouse.y = -(y1 / y2) * 2 + 1
 
-  // Places it on the camera pointing to the mouse
   raycaster.setFromCamera(mouse, camera)
 
-  // Casts a ray
   return raycaster.intersectObjects(ifcModels)
 }
 
@@ -250,26 +236,6 @@ async function pick (event) {
     const id = ifcLoader.ifcManager.getExpressId(geometry, index)
     console.log('id: ' + id)
 
-    /* const buildings = await ifcLoader.ifcManager.getAllItemsOfType(found.object.modelID, IFCBUILDING, true);
-        const building = buildings[0];
-        console.log(building); */
-
-    // logging properties
-    // const props = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
-    // console.log('props: ' + props)
-    // const pSets = await ifcLoader.ifcManager.getPropertySets(found.object.modelID, id)
-
-    // for (const pSet of pSets) {
-    //   const realValues = []
-    //   for (const prop of pSet.HasProperties) {
-    //     const id = prop.value
-    //     const value = await ifcLoader.ifcManager.getItemProperties(found.object.modelID, id)
-    //     realValues.push(value)
-    //   }
-    //   pSet.HasProperties = realValues
-    // }
-    // console.log('pSets: ' + pSets)
-
     ifcLoader.ifcManager.createSubset({
       modelID: found.object.modelID,
       material: highlightMaterial,
@@ -284,7 +250,7 @@ async function pick (event) {
 }
 canvas.onclick = (event) => pick(event)
 
-// 9 Labeling
+// 10 Labeling
 window.addEventListener('dblclick', (event) => {
   mouse.x = event.clientX / canvas.clientWidth * 2 - 1
   mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1
@@ -325,7 +291,7 @@ window.addEventListener('dblclick', (event) => {
   container.onmouseleave = () => deleteButton.classList.add('hidden')
 })
 
-// 10 visibility
+// 11 visibility
 const categories = {
   IFCWALLSTANDARDCASE,
   IFCSLAB,
@@ -336,18 +302,15 @@ const categories = {
   IFCMEMBER
 }
 
-// Gets the name of a category
 function getName (category) {
   const names = Object.keys(categories)
   return names.find(name => categories[name] === category)
 }
 
-// Gets the IDs of all the items of a specific category
 async function getAll (category) {
   return ifcLoader.ifcManager.getAllItemsOfType(0, category, false)
 }
 
-// Creates a new subset containing all elements of a category
 async function newSubsetOfType (category) {
   const ids = await getAll(category)
   return ifcLoader.ifcManager.createSubset({
@@ -359,7 +322,6 @@ async function newSubsetOfType (category) {
   })
 }
 
-// Stores the created subsets
 const subsets = {}
 
 async function setupAllCategories () {
@@ -370,13 +332,11 @@ async function setupAllCategories () {
   }
 }
 
-// Creates a new subset and configures the checkbox
 async function setupCategory (category) {
   subsets[category] = await newSubsetOfType(category)
   setupCheckBox(category)
 }
 
-// Sets up the checkbox event to hide / show elements
 function setupCheckBox (category) {
   const name = getName(category)
   const checkBox = document.getElementById(name)
@@ -388,7 +348,7 @@ function setupCheckBox (category) {
   })
 }
 
-// 11 progress pourcentage
+// 12 progress pourcentage
 function setupProgressNotification () {
   const text = document.getElementById('text-container')
   ifcLoader.ifcManager.setOnProgress((event) => {
@@ -407,7 +367,7 @@ async function setUpMultiThreading () {
 
 setUpMultiThreading()
 
-// 12 edit & export
+// 13 edit & export
 
 const button = document.getElementById('button')
 button.addEventListener('click',
@@ -424,10 +384,8 @@ button.addEventListener('click',
     link.click()
     link.remove()
   })
-// mapbox
-// TO MAKE THE MAP APPEAR YOU MUST
-// ADD YOUR ACCESS TOKEN FROM
-// https://account.mapbox.com
+
+// 14 Mapbox
 const urlString = window.location
 const url = new URL(urlString)
 const index = url.searchParams.get('model')
@@ -436,18 +394,15 @@ const coordinates = models[index].coordinates
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWJpci1ib3Vocml6IiwiYSI6ImNsbDN0NzBqeTBkMnkzam4yaHh4cDFqa2YifQ.lKwZMQhgu7dvt5i_QkrECQ'
 const map = new mapboxgl.Map({
   container: 'map',
-  // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
   style: 'mapbox://styles/mapbox/satellite-streets-v12',
   zoom: 18,
   center: coordinates,
   pitch: 60,
   bearing: -17.6,
-  antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
+  antialias: true
 })
-// Add zoom and rotation controls to the map.
 map.addControl(new mapboxgl.NavigationControl())
 
-// parameters to ensure the model is georeferenced correctly on the map
 const modelOrigin = coordinates
 const modelAltitude = 0
 const modelRotate = [Math.PI / 2, 0, 0]
@@ -457,7 +412,6 @@ const modelAsMercatorCoordinate = mapboxgl.MercatorCoordinate.fromLngLat(
   modelAltitude
 )
 
-// transformation parameters to position, rotate and scale the 3D model onto the map
 const modelTransform = {
   translateX: modelAsMercatorCoordinate.x,
   translateY: modelAsMercatorCoordinate.y,
@@ -465,13 +419,9 @@ const modelTransform = {
   rotateX: modelRotate[0],
   rotateY: modelRotate[1],
   rotateZ: modelRotate[2],
-  /* Since the 3D model is in real world meters, a scale transform needs to be
-* applied since the CustomLayerInterface expects units in MercatorCoordinates.
-*/
   scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
 }
 
-// configuration of the custom layer for a 3D model per the CustomLayerInterface
 const customLayer = {
   id: '3d-model',
   type: 'custom',
@@ -482,7 +432,6 @@ const customLayer = {
 
     loadModelInMap(this.scene)
 
-    // create two three.js lights to illuminate the model
     const directionalLight = new DirectionalLight(0xffffff)
     directionalLight.position.set(0, -70, 100).normalize()
     this.scene.add(directionalLight)
@@ -493,7 +442,6 @@ const customLayer = {
 
     this.map = map
 
-    // use the Mapbox GL JS map canvas for three.js
     this.renderer = new WebGLRenderer({
       canvas: map.getCanvas(),
       context: gl,
@@ -543,15 +491,11 @@ const customLayer = {
 
 map.on('style.load', () => {
   map.addLayer(customLayer, 'waterway-label')
-  // Insert the layer beneath any symbol layer.
   const layers = map.getStyle().layers
   const labelLayerId = layers.find(
     (layer) => layer.type === 'symbol' && layer.layout['text-field']
   ).id
 
-  // The 'building' layer in the Mapbox Streets
-  // vector tileset contains building height data
-  // from OpenStreetMap.
   map.addLayer(
     {
       id: 'add-3d-buildings',
@@ -562,10 +506,6 @@ map.on('style.load', () => {
       minzoom: 15,
       paint: {
         'fill-extrusion-color': '#aaa',
-
-        // Use an 'interpolate' expression to
-        // add a smooth transition effect to
-        // the buildings as the user zooms in.
         'fill-extrusion-height': [
           'interpolate',
           ['linear'],
@@ -591,8 +531,7 @@ map.on('style.load', () => {
   )
 })
 
-// 13 Animation loop
-// Add stats
+// 15 Add stats
 const stats = new Stats()
 stats.showPanel(0)
 document.body.appendChild(stats.dom)
@@ -603,6 +542,7 @@ stats.dom.style.right = null
 stats.dom.style.top = null
 stats.dom.style.bottom = '10%'
 
+// 16 Animation loop
 const animate = () => {
   stats.begin()
 
@@ -618,27 +558,13 @@ const animate = () => {
 
 animate()
 
+// 17 Loading model function
 async function loadModelInMap (scene) {
   const ifcLoader = new IFCLoader()
   const model = await ifcLoader.loadAsync(models[index].asset)
   ifcModels.push(model)
   scene.add(model)
 }
-
-// input.addEventListener(
-//   'change',
-//   async () => {
-//     const file = input.files[0]
-//     const url = URL.createObjectURL(file)
-//     console.log('url ', url)
-//     model = await ifcLoader.loadAsync(url)
-//     ifcModels.push(model)
-//     await setupAllCategories()
-//     const ifcProject = await ifcLoader.ifcManager.getSpatialStructure(model.modelID)
-//     createTreeMenu(ifcProject)
-//     // scene.add(model)
-//   }
-// )
 
 setTimeout(() => {
   ifcLoader.load(models[index].asset, async (model) => {
@@ -651,21 +577,13 @@ setTimeout(() => {
   })
 }, 2000)
 
+// 18 Release memory
 async function releaseMemory () {
-  // This releases all IFCLoader memory
   await ifcLoader.ifcManager.dispose()
   ifcLoader = null
   ifcLoader = new IFCLoader()
-
-  // If the wasm path was set before, we need to reset it
-  // await ifcLoader.ifcManager.setWasmPath('../../../')
-
-  // If IFC models are an array or object,
-  // you must release them there as well
-  // Otherwise, they won't be garbage collected
   ifcModels.length = 0
 }
 
-// Sets up memory disposal
 const memory = document.getElementById('memory-button')
 memory.addEventListener('click', () => releaseMemory())
